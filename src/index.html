@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mermaid Flowchart from Markdown</title>
+    <script type="module">
+      import mermaid from "../node_modules/mermaid/dist/mermaid.esm.min.mjs";
+
+      const mermaid_config = { securityLevel: "loose", theme: "dark" };
+
+      window.test = function () {
+        console.log("testing");
+      };
+
+      function create_container() {
+        const diagramBlock = document.createElement("pre");
+        diagramBlock.setAttribute("id", "mermaid-container");
+        diagramBlock.setAttribute("class", "mermaid");
+        console.log(diagramBlock);
+        document.body.appendChild(diagramBlock);
+      }
+
+      function destroy_container() {
+        const diagramBlock = document.querySelector(".mermaid");
+        if (diagramBlock) {
+          diagramBlock.remove();
+        }
+      }
+
+      function destroy_tooltips() {
+        const tooltips = document.querySelectorAll(".mermaidTooltip");
+        // Iterate over the NodeList and remove each tooltip
+        tooltips.forEach((tooltip) => {
+          tooltip.remove(); // Remove the tooltip from the DOM
+        });
+      }
+
+      function clear_diagrams() {
+        destroy_container();
+        destroy_tooltips();
+      }
+
+      window.render_markdown = async function (filePath) {
+        clear_diagrams();
+        create_container();
+        try {
+          const response = await fetch(filePath);
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          } else {
+            const markdownText = await response.text().then((text) => {
+              const diagramBlock = document.querySelector(".mermaid");
+              diagramBlock.textContent = text;
+              console.log(text);
+              mermaid.initialize(mermaid_config);
+              mermaid.run();
+              // mermaid.render("mermaid-container", text, diagramBlock);
+            });
+          }
+        } catch (error) {
+          console.error("error loading markdown file:", error);
+          return null;
+        }
+      };
+
+      create_container();
+      render_markdown("routes/root.md");
+    </script>
+    <style>
+      body {
+        background-color: black;
+        text-align: center;
+      }
+      .mermaid {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 200px;
+        opacity: 0; /* Initially hidden */
+        animation: fadeIn 500ms ease-in-out forwards; /* Fade-in animation */
+      }
+
+      @keyframes fadeIn {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body></body>
+</html>
